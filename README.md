@@ -17,7 +17,7 @@ All scripts are PEP 8-compliant, fully documented, and use consistent configurat
 
 ## 📊 Data
 
-Traffic data originate from Darmstadt, Germany. The `2024-03-01_35/` folder is named after its start date (March 1, 2024) and contains 35 days of 10-minute interval recordings. Each CSV file corresponds to a single crossroads (named by sensor ID, e.g., `A003.csv`, `A007.csv`, `A024.csv`, `A113.csv`, etc.). Inside each file, rows represent 10-minute timestamps, with columns for each local sensor’s vehicle count at that crossroads and a `Total` column summing all sensors over each interval.
+Traffic data originate from Darmstadt, Germany. Downloaded using the site https://datenplattform.darmstadt.de/verkehr/apps/opendata/#/. The `2024-03-01_35/` folder is named after its start date (March 1, 2024) and contains 35 days of 10-minute interval recordings. Each CSV file corresponds to a single crossroads (named by sensor ID, e.g., `A003.csv`, `A007.csv`, `A024.csv`, `A113.csv`, etc.). Inside each file, rows represent 10-minute timestamps, with columns for each local sensor’s vehicle count at that crossroads and a `Total` column summing all sensors over each interval.
 
 ---
 
