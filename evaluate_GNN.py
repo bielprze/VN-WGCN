@@ -254,7 +254,7 @@ def main():
                 # load trained weights
                 weight_file = (
                     SAVE_FOLDER
-                    / f"vehiclecount_h{horizon}_s{seed}_"
+                    / f"darmstadt_h{horizon}_s{seed}_"
                     f"{'D' if USE_DELAUNAY else 'S'}_"
                     f"d{MAX_DEPTH}_a{adj_scaler}.h5"
                 )
