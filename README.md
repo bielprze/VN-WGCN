@@ -3,7 +3,7 @@
 This repository contains end-to-end code for forecasting traffic speeds using:
 
 - **ST-GCN / VNWS-TGCN** (Spatio-Temporal Graph Convolutional Networks)  
-  – `train.py` & `evaluate.py`  
+  – `train_GNN.py` & `evaluate_GNN.py`  
 - **Simple LSTM** baseline  
   – `simple_lstm.py` & `evaluate_simple_lstm.py`  
 - **Helper modules**  
@@ -91,6 +91,7 @@ Traffic data originate from Darmstadt, Germany. The `2024-03-01_35/` folder is n
 ├── helper.py                     # GeoJSON & CSV loading + preprocessing
 ├── gcnnmodel.py                  # GraphConv & LSTMGC model definitions
 ├── evaluate_results.R            # R script for summarising & comparing
+├── config.yaml                   # configuration for evaluate_GNN.py and train_GNN.py
 ├── requirements.txt              # Python dependencies
 └── 2024-03-01_35/                # Folder of sensor CSVs (time series)
     └── *.csv
