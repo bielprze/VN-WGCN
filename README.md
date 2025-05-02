@@ -101,26 +101,46 @@ Traffic data originate from Darmstadt, Germany. The `2024-03-01_35/` folder is n
 
 ## ⚙️ Configuration
 
-At the top of each Python script you’ll find a **config block**:
+All configurable parameters (paths, hyperparameters, data splits, etc.) are centralized in `config.yaml`. Edit that file to adjust settings:
 
-```python
-# Paths
-DATA_FOLDER = Path("2024-03-01_35")
-GEOJSON_PATH = Path("sensors_location.geojson")
+```yaml
+# Example entries in config.yaml
 
-# Splits
-TRAIN_SIZE = 0.5
-VAL_SIZE   = 0.2
+# Data & paths
+folder_to_load: "2024-03-01_35/"
+geojson_path: "sensors_location.geojson"
+save_folder: "weights"
+output_csv: "evaluation_results.csv"
 
-# Model settings
-INPUT_SEQ_LEN      = 12
-FORECAST_HORIZONS  = [1,2,3]
-LSTM_UNITS         = 200
-GRAPH_CONV_PARAMS  = { "aggregation_type":"mean", ... }
-# …
+# Train/val/test split
+train_size: 0.5
+val_size: 0.2
+
+# Graph parameters
+sigma2: 0.1
+epsilon: 0.95
+
+# Delaunay settings
+use_delaunay: true
+max_depth: 5
+adj_scaler_options: [0, 1, 2]
+
+# Model / data parameters
+in_feat: 1
+out_feat: 10
+lstm_units: 64
+graph_conv_params:
+  aggregation_type: "mean"
+  combination_type: "concat"
+  activation: null
+
+# Training / evaluation settings
+epochs: 40
+batch_size: 64
+input_seq_len: 12
+forecast_horizons: [1, 2, 3]
+seeds: [0,1,2,3,4,5,6,7,8,9]
 ```
-
-Modify these constants to adapt to your data or experiments.
 
 ---
 
