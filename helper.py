@@ -12,6 +12,7 @@ import pandas as pd
 import numpy as np
 from pyproj import Transformer
 
+EXCLUDE_KEYS = ['A173']  # sometimes, some sensors must be excluded due to corruption in data
 
 def load_and_normalize_geojson(
     file_path: str, width: int = 256, height: int = 256
@@ -65,7 +66,7 @@ def load_data_and_combine_with_geojson(
         sensor_points,
         all_keys,
         sensor_values,
-        exclude_keys=['A173']
+        exclude_keys=EXCLUDE_KEYS
     )
     kept_keys = list(clean_points.keys())
 
@@ -108,9 +109,6 @@ def _load_sensor_data(folder_path: str) -> Tuple[Dict[str, List[int]], int]:
 
     for fname in os.listdir(folder_path):
         sensor_id, ext = os.path.splitext(fname)
-        if sensor_id.startswith('Alle0LSA'):
-            continue
-
         full_path = os.path.join(folder_path, fname)
         try:
             df = pd.read_csv(full_path)
@@ -124,16 +122,6 @@ def _load_sensor_data(folder_path: str) -> Tuple[Dict[str, List[int]], int]:
             print(f"Error processing {fname}: {e}")
 
     return data, max_len
-
-
-def _clean_keys(
-    sensors: Dict[str, Tuple[float, float]],
-    keys: List[str]
-) -> Dict[str, Tuple[float, float]]:
-    """
-    Internal: keep only sensors whose IDs appear in the provided list.
-    """
-    return {k: sensors[k] for k in keys if k in sensors}
 
 
 def _clean_keys_remove_zero(
