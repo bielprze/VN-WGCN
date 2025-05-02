@@ -5,3 +5,4 @@ pyproj>=3.4.1
 tqdm>=4.64.1
 scipy>=1.7.0
 scikit-learn>=1.0
+pyyaml>=5.4
