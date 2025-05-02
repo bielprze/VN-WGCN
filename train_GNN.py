@@ -87,25 +87,25 @@ def set_seed(seed: int):
 def ensure_dirs():
     os.makedirs(SAVE_FOLDER, exist_ok=True)
 
-
-def load_data() -> Tuple[np.ndarray, List[str], np.ndarray, np.ndarray]:
-    """Load raw speeds and compute distances/points."""
-    sensors, full_data, _ = helper.load_data_and_combine_with_geojson(
+def load_data() -> Tuple[np.ndarray, List[str], np.ndarray]:
+    """Load raw vehicle counts and compute distances/points."""
+    sensors, counts_array, _ = helper.load_data_and_combine_with_geojson(
         FOLDER_TO_LOAD, GEOJSON_PATH
     )
     route_distances, all_points = calculate_route_distance(sensors)
     logging.info("route_distances shape=%s", route_distances.shape)
-    logging.info("speeds_array    shape=%s", full_data.shape)
-    return route_distances, all_points, full_data
-
+    logging.info("vehicle_counts_array shape=%s", counts_array.shape)
+    return route_distances, all_points, counts_array
 
 def make_datasets(
-    speeds: np.ndarray, seed: int, forecast_horizon: int
+    counts: np.ndarray, seed: int, forecast_horizon: int
 ) -> Tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
     """Split, normalize, and wrap in TF datasets."""
-    train_arr, val_arr, test_arr, _ = preprocess(speeds, TRAIN_SIZE, VAL_SIZE)
-    logging.info("train size=%s, val size=%s, test size=%s",
-                 train_arr.shape, val_arr.shape, test_arr.shape)
+    train_arr, val_arr, test_arr, _ = preprocess(counts, TRAIN_SIZE, VAL_SIZE)
+    logging.info(
+        "train size=%s, val size=%s, test size=%s",
+        train_arr.shape, val_arr.shape, test_arr.shape
+    )
 
     train_ds = create_tf_dataset(
         train_arr, INPUT_SEQ_LEN, forecast_horizon, BATCH_SIZE, seed=seed
@@ -137,7 +137,6 @@ def build_graph(
     else:
         adj = compute_adjacency_matrix(route_distances, SIGMA2, EPSILON)
 
-    # only edges with weight > 0
     idx, nbr = np.where(adj > 0.0)
     weights = adj[idx, nbr]
     graph = GraphInfo(
@@ -158,7 +157,6 @@ def build_model(graph: GraphInfo, forecast_horizon: int) -> Model:
         forecast_horizon,
         graph,
         GRAPH_CONV_PARAMS,
-        seed=None,  # seed already set globally
     )
     inputs = layers.Input(shape=(INPUT_SEQ_LEN, graph.num_nodes, IN_FEAT))
     outputs = stgcn(inputs)
@@ -176,12 +174,12 @@ def main():
     setup_logging()
     ensure_dirs()
 
-    route_distances, all_points, speeds = load_data()
+    route_distances, all_points, counts = load_data()
 
     for horizon in tqdm(FORECAST_HORIZONS, desc="Horizons"):
         for seed in tqdm(SEEDS, desc="Seeds", leave=False):
             set_seed(seed)
-            train_ds, val_ds, _ = make_datasets(speeds, seed, horizon)
+            train_ds, val_ds, _ = make_datasets(counts, seed, horizon)
 
             for adj_scaler in ADJ_SCALER_OPTIONS:
                 graph = build_graph(
@@ -201,9 +199,11 @@ def main():
                     verbose=2,
                 )
 
-                filename = f"darmstadt_h{horizon}_s{seed}_" \
-                           f"{'D' if USE_DELAUNAY else 'S'}_" \
-                           f"d{MAX_DEPTH}_a{adj_scaler}.h5"
+                filename = (
+                    f"darmstadt_h{horizon}_s{seed}_"
+                    f"{'D' if USE_DELAUNAY else 'S'}_"
+                    f"d{MAX_DEPTH}_a{adj_scaler}.h5"
+                )
                 save_path = os.path.join(SAVE_FOLDER, filename)
                 model.save_weights(save_path)
                 logging.info("Saved weights to %s", save_path)

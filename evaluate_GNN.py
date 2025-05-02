@@ -88,33 +88,35 @@ def ensure_dirs():
     SAVE_FOLDER.mkdir(parents=True, exist_ok=True)
 
 
-def load_data() -> Tuple[np.ndarray, np.ndarray, List[str]]:
+def load_data() -> Tuple[np.ndarray, np.ndarray, np.ndarray, List[str], List[str]]:
     """Load raw data and compute route distances & sensor keys."""
-    sensors, full_data, all_keys = helper.load_data_and_combine_with_geojson(
+    sensors, counts_array, all_keys = helper.load_data_and_combine_with_geojson(
         str(FOLDER_TO_LOAD) + "/", str(GEOJSON_PATH)
     )
     route_distances, all_points = calculate_route_distance(sensors)
     logging.info("Loaded route_distances shape=%s", route_distances.shape)
-    logging.info("Loaded speeds_array    shape=%s", full_data.shape)
+    logging.info("Loaded counts_array      shape=%s", counts_array.shape)
     sensor_keys = list(sensors.keys())
-    return route_distances, all_points, full_data, sensor_keys, all_keys
+    return route_distances, all_points, counts_array, sensor_keys, all_keys
 
 
 def make_datasets(
-    speeds: np.ndarray, seed: int, horizon: int
-) -> Tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
-    """Split data, normalize, and build TF datasets."""
-    train_arr, val_arr, test_arr, scaler = preprocess(speeds, TRAIN_SIZE, VAL_SIZE)
+    counts: np.ndarray, seed: int, horizon: int
+) -> Tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset, object]:
+    """Split vehicle count data, normalize, and build TF datasets."""
+    train_arr, val_arr, test_arr, scaler = preprocess(counts, TRAIN_SIZE, VAL_SIZE)
     logging.info(
         "Split data: train=%s, val=%s, test=%s",
         train_arr.shape, val_arr.shape, test_arr.shape
     )
 
     train_ds = create_tf_dataset(
-        train_arr, INPUT_SEQ_LEN, horizon, batch_size=train_arr.shape[0] if False else 64, seed=seed
+        train_arr, INPUT_SEQ_LEN, horizon,
+        batch_size=64, seed=seed
     )
     val_ds = create_tf_dataset(
-        val_arr, INPUT_SEQ_LEN, horizon, batch_size=64, seed=seed
+        val_arr, INPUT_SEQ_LEN, horizon,
+        batch_size=64, seed=seed
     )
     test_ds = create_tf_dataset(
         test_arr,
@@ -152,7 +154,7 @@ def build_graph(
 
 
 def build_model(graph: GraphInfo, horizon: int) -> Model:
-    """Instantiate and compile the trained model architecture."""
+    """Instantiate and compile the model architecture for vehicle counts."""
     stgcn = LSTMGC(
         IN_FEAT,
         OUT_FEAT,
@@ -176,9 +178,9 @@ def evaluate_model(
     scaler,
     sensor_keys: List[str],
     all_keys: List[str],
-) -> Tuple[float, float, float, float]:
+) -> Tuple[float, float, float, float, float, float, float, float]:
     """
-    Run a single-batch prediction, invert scaling, and compute
+    Run prediction on vehicle counts, invert scaling, and compute
     mean MSE, RMSE, MAE, and MRE across sensors.
     """
     x, y_true = next(test_ds.as_numpy_iterator())
@@ -236,12 +238,12 @@ def main():
     with OUTPUT_CSV.open("w", newline="") as f:
         f.write(",".join(header) + "\n")
 
-    route_distances, all_points, speeds, sensor_keys, all_keys = load_data()
+    route_distances, all_points, counts_array, sensor_keys, all_keys = load_data()
 
     for horizon in FORECAST_HORIZONS:
         for seed in SEEDS:
             set_seed(seed)
-            _, _, test_ds, scaler = make_datasets(speeds, seed, horizon)
+            _, _, test_ds, scaler = make_datasets(counts_array, seed, horizon)
 
             for adj_scaler in ADJ_SCALER_OPTIONS:
                 graph = build_graph(
@@ -252,7 +254,7 @@ def main():
                 # load trained weights
                 weight_file = (
                     SAVE_FOLDER
-                    / f"darmstadt_h{horizon}_s{seed}_"
+                    / f"vehiclecount_h{horizon}_s{seed}_"
                     f"{'D' if USE_DELAUNAY else 'S'}_"
                     f"d{MAX_DEPTH}_a{adj_scaler}.h5"
                 )
