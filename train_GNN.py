@@ -12,6 +12,7 @@ import os
 import random
 import logging
 from typing import Tuple, List
+import yaml
 
 import numpy as np
 import tensorflow as tf
@@ -33,42 +34,39 @@ from gcnnmodel import (
 )
 
 # ─── Configuration ──────────────────────────────────────────────────────────────
+with open("config.yaml") as f:
+    cfg = yaml.safe_load(f)
 
 # Data & paths
-FOLDER_TO_LOAD = "2024-03-01_35/"
-GEOJSON_PATH = "sensors_location.geojson"
-SAVE_FOLDER = "weights"
+FOLDER_TO_LOAD     = cfg["folder_to_load"]
+GEOJSON_PATH       = cfg["geojson_path"]
+SAVE_FOLDER        = cfg["save_folder"]
 
 # Train/val/test split (fractions)
-TRAIN_SIZE = 0.5
-VAL_SIZE = 0.2
+TRAIN_SIZE         = cfg["train_size"]
+VAL_SIZE           = cfg["val_size"]
 
 # Graph parameters
-SIGMA2 = 0.1
-EPSILON = 0.95
+SIGMA2             = cfg["sigma2"]
+EPSILON            = cfg["epsilon"]
 
 # Delaunay settings
-USE_DELAUNAY = True
-MAX_DEPTH = 5
-ADJ_SCALER_OPTIONS = [0, 1, 2]
+USE_DELAUNAY       = cfg["use_delaunay"]
+MAX_DEPTH          = cfg["max_depth"]
+ADJ_SCALER_OPTIONS = cfg["adj_scaler_options"]
 
 # Model / data parameters
-IN_FEAT = 1
-OUT_FEAT = 10
-LSTM_UNITS = 64
-GRAPH_CONV_PARAMS = {
-    "aggregation_type": "mean",
-    "combination_type": "concat",
-    "activation": None,
-}
+IN_FEAT            = cfg["in_feat"]
+OUT_FEAT           = cfg["out_feat"]
+LSTM_UNITS         = cfg["lstm_units"]
+GRAPH_CONV_PARAMS  = cfg["graph_conv_params"]
 
 # Training loop settings
-EPOCHS = 40
-BATCH_SIZE = 64
-INPUT_SEQ_LEN = 12
-FORECAST_HORIZONS = [1, 2, 3]
-SEEDS = list(range(10))
-
+EPOCHS             = cfg["epochs"]
+BATCH_SIZE         = cfg["batch_size"]
+INPUT_SEQ_LEN      = cfg["input_seq_len"]
+FORECAST_HORIZONS  = cfg["forecast_horizons"]
+SEEDS              = cfg["seeds"]
 
 # ─── Utilities ─────────────────────────────────────────────────────────────────
 
@@ -183,7 +181,7 @@ def main():
     for horizon in tqdm(FORECAST_HORIZONS, desc="Horizons"):
         for seed in tqdm(SEEDS, desc="Seeds", leave=False):
             set_seed(seed)
-            train_ds, val_ds, test_ds = make_datasets(speeds, seed, horizon)
+            train_ds, val_ds, _ = make_datasets(speeds, seed, horizon)
 
             for adj_scaler in ADJ_SCALER_OPTIONS:
                 graph = build_graph(

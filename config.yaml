@@ -1,0 +1,42 @@
+# Configuration for both train.py and evaluate.py
+
+# Data & paths
+folder_to_load: "2024-03-01_35/"
+geojson_path: "sensors_location.geojson"
+save_folder: "weights"
+output_csv: "evaluation_results.csv"
+
+# Train/val/test split (fractions)
+train_size: 0.5
+val_size: 0.2
+
+# Graph parameters
+sigma2: 0.1
+epsilon: 0.95
+
+# Delaunay settings
+use_delaunay: true
+max_depth: 5
+adj_scaler_options:
+  - 0
+  - 1
+  - 2
+
+# Model / data parameters
+in_feat: 1
+out_feat: 10
+lstm_units: 64
+graph_conv_params:
+  aggregation_type: "mean"
+  combination_type: "concat"
+  activation: null
+
+# Training loop settings
+epochs: 40
+batch_size: 64
+input_seq_len: 12
+forecast_horizons:
+  - 1
+  - 2
+  - 3
+seeds: [0,1,2,3,4,5,6,7,8,9]

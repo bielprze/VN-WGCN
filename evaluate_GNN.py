@@ -14,6 +14,7 @@ import logging
 import statistics
 from pathlib import Path
 from typing import Tuple, List
+import yaml
 
 import numpy as np
 import tensorflow as tf
@@ -33,41 +34,39 @@ from gcnnmodel import (
 )
 
 # ─── Configuration ──────────────────────────────────────────────────────────────
+with open("config.yaml") as f:
+    cfg = yaml.safe_load(f)
 
-FOLDER_TO_LOAD = Path("2024-03-01_35")
-GEOJSON_PATH = Path("sensors_location.geojson")
-SAVE_FOLDER = Path("weights")
-OUTPUT_CSV = Path("evaluation_results.csv")
+# Data & paths
+FOLDER_TO_LOAD = Path(cfg["folder_to_load"])
+GEOJSON_PATH   = Path(cfg["geojson_path"])
+SAVE_FOLDER    = Path(cfg["save_folder"])
+OUTPUT_CSV     = Path(cfg["output_csv"])
 
 # Data split
-TRAIN_SIZE = 0.5
-VAL_SIZE = 0.2
+TRAIN_SIZE = cfg["train_size"]
+VAL_SIZE   = cfg["val_size"]
 
 # Graph parameters
-SIGMA2 = 0.1
-EPSILON = 0.95
+SIGMA2  = cfg["sigma2"]
+EPSILON = cfg["epsilon"]
 
 # Delaunay settings
-USE_DELAUNAY = True
-MAX_DEPTH = 5
-ADJ_SCALER_OPTIONS = [0, 1, 2]
+USE_DELAUNAY       = cfg["use_delaunay"]
+MAX_DEPTH          = cfg["max_depth"]
+ADJ_SCALER_OPTIONS = cfg["adj_scaler_options"]
 
 # Model / dataset parameters
-IN_FEAT = 1
-OUT_FEAT = 10
-LSTM_UNITS = 64
-GRAPH_CONV_PARAMS = {
-    "aggregation_type": "mean",
-    "combination_type": "concat",
-    "activation": None,
-}
-INPUT_SEQ_LEN = 12
-MULTI_HORIZON = False
+IN_FEAT           = cfg["in_feat"]
+OUT_FEAT          = cfg["out_feat"]
+LSTM_UNITS        = cfg["lstm_units"]
+GRAPH_CONV_PARAMS = cfg["graph_conv_params"]
+INPUT_SEQ_LEN     = cfg["input_seq_len"]
+MULTI_HORIZON     = cfg.get("multi_horizon", False)
 
 # Evaluation loop settings
-FORECAST_HORIZONS = [1, 2, 3]
-SEEDS = list(range(10))
-
+FORECAST_HORIZONS = cfg["forecast_horizons"]
+SEEDS             = cfg["seeds"]
 
 # ─── Utilities ─────────────────────────────────────────────────────────────────
 
