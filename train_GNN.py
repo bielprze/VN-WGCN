@@ -202,7 +202,7 @@ def main():
                 filename = (
                     f"darmstadt_h{horizon}_s{seed}_"
                     f"{'D' if USE_DELAUNAY else 'S'}_"
-                    f"d{MAX_DEPTH}_a{adj_scaler}.h5"
+                    f"d{MAX_DEPTH}_a{adj_scaler}.weights.h5"
                 )
                 save_path = os.path.join(SAVE_FOLDER, filename)
                 model.save_weights(save_path)

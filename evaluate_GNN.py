@@ -256,7 +256,7 @@ def main():
                     SAVE_FOLDER
                     / f"darmstadt_h{horizon}_s{seed}_"
                     f"{'D' if USE_DELAUNAY else 'S'}_"
-                    f"d{MAX_DEPTH}_a{adj_scaler}.h5"
+                    f"d{MAX_DEPTH}_a{adj_scaler}.weights.h5"
                 )
                 model.load_weights(str(weight_file))
                 logging.info("Loaded weights from %s", weight_file)
